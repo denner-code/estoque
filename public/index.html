@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estoque de Tecidos</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --canvas:#EDE7DA;
+    --chalk:#FAF8F3;
+    --ink:#2B2A28;
+    --ink-soft:#6b6862;
+    --indigo:#35507A;
+    --indigo-dark:#28405f;
+    --thread:#B5482F;
+    --thread-dark:#943a25;
+    --sage:#6B7A5E;
+    --line:#DCD4C2;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--canvas);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    background-image:
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(43,42,40,0.025) 39px, rgba(43,42,40,0.025) 40px);
+  }
+
+  .wrap{max-width:1080px;margin:0 auto;padding:40px 28px 80px;}
+
+  header{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    margin-bottom:6px;flex-wrap:wrap;gap:16px;
+  }
+  .brand-eyebrow{
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--thread);font-weight:600;margin:0 0 6px;
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:38px;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{color:var(--ink-soft);font-size:14.5px;margin-top:8px;max-width:480px;line-height:1.5;}
+
+  .stitch-divider{
+    height:0;border:none;
+    border-top:2px dashed #C7BCA1;
+    margin:26px 0 30px;
+  }
+
+  .toolbar{
+    display:flex;gap:12px;align-items:center;margin-bottom:22px;flex-wrap:wrap;
+  }
+  .search-box{flex:1;min-width:220px;position:relative;}
+  .search-box input{
+    width:100%;padding:11px 14px 11px 38px;
+    border:1px solid var(--line);border-radius:9px;background:var(--chalk);
+    font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);outline:none;
+    transition:border-color .15s;
+  }
+  .search-box input:focus{border-color:var(--indigo);}
+  .search-box svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:.45;}
+
+  .btn{
+    font-family:'Inter',sans-serif;font-weight:600;font-size:14px;
+    padding:11px 18px;border-radius:9px;border:none;cursor:pointer;
+    display:inline-flex;align-items:center;gap:8px;
+    transition:transform .12s ease, box-shadow .12s ease, background .15s;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn:disabled{opacity:.55;cursor:not-allowed;}
+  .btn-primary{background:var(--thread);color:#fff;box-shadow:0 2px 0 var(--thread-dark);}
+  .btn-primary:hover:not(:disabled){background:#c14f32;}
+  .btn-ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--ink-soft);color:var(--ink);}
+
+  .filter-chip{
+    font-size:12.5px;font-weight:600;padding:8px 13px;border-radius:20px;
+    border:1px solid var(--line);background:var(--chalk);color:var(--ink-soft);
+    cursor:pointer;transition:all .15s;
+  }
+  .filter-chip.active{background:var(--indigo);border-color:var(--indigo);color:#fff;}
+
+  .table-card{background:var(--chalk);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+  table{width:100%;border-collapse:collapse;}
+  thead th{
+    text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink-soft);font-weight:600;padding:16px 20px;border-bottom:1px dashed var(--line);
+  }
+  tbody td{padding:16px 20px;font-size:14.5px;border-bottom:1px solid #EFE9DB;vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr{transition:background .12s;}
+  tbody tr:hover{background:#F4F0E6;}
+
+  .swatch{
+    width:14px;height:14px;border-radius:4px;display:inline-block;
+    margin-right:10px;vertical-align:middle;box-shadow:inset 0 0 0 1px rgba(0,0,0,0.12);
+  }
+  .fabric-name{font-weight:600;font-size:14.5px;}
+  .fabric-type{color:var(--ink-soft);font-size:13px;margin-top:2px;}
+
+  .qty{font-variant-numeric:tabular-nums;font-weight:600;}
+  .unit-tag{
+    font-size:10.5px;font-weight:700;letter-spacing:.03em;
+    background:#EDE4CF;color:#8a7a52;padding:2px 7px;border-radius:5px;margin-left:6px;
+  }
+  .unit-tag.kg{background:#E4E9DE;color:var(--sage);}
+
+  .low-stock{color:var(--thread);}
+  .low-flag{display:inline-block;font-size:10.5px;font-weight:700;color:var(--thread);margin-left:8px;}
+
+  .row-actions{display:flex;gap:8px;justify-content:flex-end;}
+  .icon-btn{
+    width:32px;height:32px;border-radius:8px;border:1px solid var(--line);
+    background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    color:var(--ink-soft);transition:all .15s;
+  }
+  .icon-btn:hover{border-color:var(--indigo);color:var(--indigo);}
+  .icon-btn.del:hover{border-color:var(--thread);color:var(--thread);}
+  .icon-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+  .empty-state{padding:70px 20px;text-align:center;color:var(--ink-soft);}
+  .empty-state svg{opacity:.5;margin-bottom:14px;}
+  .empty-state p{font-size:14px;margin:4px 0 18px;}
+
+  .error-banner{
+    background:#F7E7E2;border:1px solid #E3B6A6;color:var(--thread-dark);
+    padding:12px 16px;border-radius:9px;font-size:13.5px;margin-bottom:18px;display:none;
+  }
+  .error-banner.show{display:block;}
+
+  .footer-note{margin-top:18px;font-size:12.5px;color:var(--ink-soft);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
+
+  .overlay{
+    position:fixed;inset:0;background:rgba(43,42,40,0.45);
+    display:none;align-items:center;justify-content:center;z-index:50;backdrop-filter: blur(2px);
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    background:var(--chalk);width:420px;max-width:90vw;border-radius:16px;padding:28px;
+    border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,0.25);animation:pop .18s ease;
+  }
+  @keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98);}to{opacity:1;transform:translateY(0) scale(1);}}
+  .modal h2{font-family:'Fraunces',serif;font-size:22px;font-weight:600;margin:0 0 4px;}
+  .modal .modal-sub{font-size:13px;color:var(--ink-soft);margin-bottom:20px;}
+  .field{margin-bottom:16px;}
+  .field label{
+    display:block;font-size:12px;font-weight:600;color:var(--ink-soft);
+    margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;
+  }
+  .field input, .field select{
+    width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;
+    font-family:'Inter',sans-serif;font-size:14px;background:#fff;outline:none;transition:border-color .15s;
+  }
+  .field input:focus, .field select:focus{border-color:var(--indigo);}
+  .field-row{display:flex;gap:12px;}
+  .field-row .field{flex:1;}
+
+  .swatch-picker{display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;}
+  .swatch-opt{
+    width:26px;height:26px;border-radius:7px;cursor:pointer;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,0.12);transition:transform .1s;
+  }
+  .swatch-opt.selected{box-shadow:0 0 0 2px var(--chalk), 0 0 0 4px var(--indigo);}
+  .swatch-opt:hover{transform:scale(1.08);}
+
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;}
+
+  .toast{
+    position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#fff;padding:12px 20px;border-radius:9px;
+    font-size:13.5px;font-weight:500;opacity:0;pointer-events:none;transition:all .25s ease;z-index:60;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .toast.error{background:var(--thread-dark);}
+
+  .loading-row td{padding:40px 20px;text-align:center;color:var(--ink-soft);font-size:14px;}
+
+  @media (max-width:640px){
+    thead{display:none;}
+    tbody td{display:block;padding:6px 20px;border-bottom:none;}
+    tbody tr{border-bottom:1px dashed var(--line);padding:12px 0;display:block;}
+    .row-actions{justify-content:flex-start;margin-top:8px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <p class="brand-eyebrow">Controle de estoque</p>
+      <h1>Tecidos</h1>
+      <p class="subtitle">Cadastre, edite e acompanhe as peças em metros ou quilogramas — tudo num único lugar, acessível de qualquer computador da rede.</p>
+    </div>
+    <button class="btn btn-primary" onclick="openModal()">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 1V14M1 7.5H14" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>
+      Adicionar tecido
+    </button>
+  </header>
+
+  <hr class="stitch-divider">
+
+  <div class="error-banner" id="errorBanner"></div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="#2B2A28" stroke-width="1.5"/><path d="M10.5 10.5L14 14" stroke="#2B2A28" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input id="searchInput" type="text" placeholder="Buscar por nome ou tipo…">
+    </div>
+    <button class="filter-chip active" data-unit="todos" onclick="setFilter('todos')">Todos</button>
+    <button class="filter-chip" data-unit="MT" onclick="setFilter('MT')">Metros</button>
+    <button class="filter-chip" data-unit="KG" onclick="setFilter('KG')">Quilogramas</button>
+  </div>
+
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Tecido</th>
+          <th>Tipo / Cor</th>
+          <th>Quantidade</th>
+          <th style="text-align:right;">Ações</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr class="loading-row"><td colspan="4">Carregando estoque…</td></tr>
+      </tbody>
+    </table>
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <svg width="42" height="42" viewBox="0 0 42 42" fill="none"><path d="M6 12L21 5L36 12V30L21 37L6 30V12Z" stroke="#6b6862" stroke-width="1.5" stroke-dasharray="3 3"/></svg>
+      <p>Nenhum tecido encontrado.<br>Ajuste a busca ou cadastre um novo rolo.</p>
+      <button class="btn btn-primary" onclick="openModal()">Adicionar tecido</button>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    <span id="countLabel">Carregando…</span>
+    <span id="lowStockLabel"></span>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2 id="modalTitle">Novo tecido</h2>
+    <p class="modal-sub">Preencha os dados do rolo ou peça para adicionar ao estoque.</p>
+
+    <div class="field">
+      <label>Nome do tecido</label>
+      <input id="fName" type="text" placeholder="Ex: Tricoline Floral Azul">
+    </div>
+    <div class="field">
+      <label>Tipo / Cor</label>
+      <input id="fType" type="text" placeholder="Ex: Algodão · Azul Marinho">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Quantidade</label>
+        <input id="fQty" type="number" min="0" step="0.1" placeholder="0">
+      </div>
+      <div class="field">
+        <label>Unidade</label>
+        <select id="fUnit">
+          <option value="MT">Metros (MT)</option>
+          <option value="KG">Quilogramas (KG)</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Cor de identificação</label>
+      <div class="swatch-picker" id="swatchPicker"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="saveBtn" onclick="saveFabric()">Salvar tecido</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = '/api/tecidos';
+  const SWATCH_COLORS = ['#B5482F','#35507A','#6B7A5E','#B08D57','#7A5A7A','#4A6E6E','#8A3B3B','#525252'];
+  const LOW_THRESHOLD = {MT: 10, KG: 5};
+
+  let fabrics = [];
+  let editingId = null;
+  let currentFilter = 'todos';
+  let selectedColor = SWATCH_COLORS[0];
+  let searchDebounce;
+
+  async function loadFabrics(){
+    try{
+      const search = document.getElementById('searchInput').value.trim();
+      const params = new URLSearchParams();
+      if(search) params.set('search', search);
+      if(currentFilter !== 'todos') params.set('unit', currentFilter);
+
+      const res = await fetch(`${API}?${params.toString()}`);
+      if(!res.ok) throw new Error('Falha ao carregar dados do servidor.');
+      fabrics = await res.json();
+      hideError();
+      renderTable();
+    }catch(err){
+      showError('Não foi possível carregar o estoque. Verifique a conexão com o servidor.');
+      document.getElementById('tableBody').innerHTML = '';
+      document.getElementById('emptyState').style.display = 'none';
+    }
+  }
+
+  function showError(msg){
+    const el = document.getElementById('errorBanner');
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+  function hideError(){
+    document.getElementById('errorBanner').classList.remove('show');
+  }
+
+  function buildSwatchPicker(){
+    const el = document.getElementById('swatchPicker');
+    el.innerHTML = SWATCH_COLORS.map(c =>
+      `<div class="swatch-opt ${c===selectedColor?'selected':''}" style="background:${c}" onclick="pickColor('${c}')"></div>`
+    ).join('');
+  }
+  function pickColor(c){
+    selectedColor = c;
+    buildSwatchPicker();
+  }
+
+  function setFilter(f){
+    currentFilter = f;
+    document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
+    document.querySelector(`.filter-chip[data-unit="${f}"]`).classList.add('active');
+    loadFabrics();
+  }
+
+  function renderTable(){
+    const tbody = document.getElementById('tableBody');
+    const empty = document.getElementById('emptyState');
+
+    if(fabrics.length === 0){
+      tbody.innerHTML = '';
+      empty.style.display = 'block';
+    } else {
+      empty.style.display = 'none';
+      tbody.innerHTML = fabrics.map(f=>{
+        const isLow = Number(f.qty) <= LOW_THRESHOLD[f.unit];
+        return `
+        <tr>
+          <td>
+            <span class="swatch" style="background:${f.color}"></span>
+            <span class="fabric-name">${escapeHtml(f.name)}</span>
+          </td>
+          <td><span class="fabric-type">${escapeHtml(f.type || '')}</span></td>
+          <td>
+            <span class="qty ${isLow?'low-stock':''}">${Number(f.qty)}</span>
+            <span class="unit-tag ${f.unit==='KG'?'kg':''}">${f.unit}</span>
+            ${isLow ? '<span class="low-flag">● estoque baixo</span>' : ''}
+          </td>
+          <td>
+            <div class="row-actions">
+              <button class="icon-btn" title="Editar" onclick="editFabric(${f.id})">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9.5 1.5L12.5 4.5L4.5 12.5H1.5V9.5L9.5 1.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+              </button>
+              <button class="icon-btn del" title="Remover" onclick="deleteFabric(${f.id})">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 4H11.5M5.2 4V2.3H8.8V4M5.5 6.3V10.2M8.5 6.3V10.2M3.3 4L3.9 11.5C3.95 11.9 4.3 12.2 4.7 12.2H9.3C9.7 12.2 10.05 11.9 10.1 11.5L10.7 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    document.getElementById('countLabel').textContent =
+      `${fabrics.length} ${fabrics.length === 1 ? 'item' : 'itens'} no estoque`;
+
+    const lowCount = fabrics.filter(f => Number(f.qty) <= LOW_THRESHOLD[f.unit]).length;
+    document.getElementById('lowStockLabel').textContent =
+      lowCount > 0 ? `${lowCount} com estoque baixo` : '';
+  }
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function openModal(){
+    editingId = null;
+    document.getElementById('modalTitle').textContent = 'Novo tecido';
+    document.getElementById('fName').value = '';
+    document.getElementById('fType').value = '';
+    document.getElementById('fQty').value = '';
+    document.getElementById('fUnit').value = 'MT';
+    selectedColor = SWATCH_COLORS[Math.floor(Math.random()*SWATCH_COLORS.length)];
+    buildSwatchPicker();
+    document.getElementById('overlay').classList.add('show');
+    document.getElementById('fName').focus();
+  }
+
+  function editFabric(id){
+    const f = fabrics.find(x=>x.id===id);
+    if(!f) return;
+    editingId = id;
+    document.getElementById('modalTitle').textContent = 'Editar tecido';
+    document.getElementById('fName').value = f.name;
+    document.getElementById('fType').value = f.type || '';
+    document.getElementById('fQty').value = f.qty;
+    document.getElementById('fUnit').value = f.unit;
+    selectedColor = f.color;
+    buildSwatchPicker();
+    document.getElementById('overlay').classList.add('show');
+  }
+
+  function closeModal(){
+    document.getElementById('overlay').classList.remove('show');
+  }
+
+  async function saveFabric(){
+    const name = document.getElementById('fName').value.trim();
+    const type = document.getElementById('fType').value.trim();
+    const qty = parseFloat(document.getElementById('fQty').value);
+    const unit = document.getElementById('fUnit').value;
+    const saveBtn = document.getElementById('saveBtn');
+
+    if(!name || isNaN(qty) || qty < 0){
+      showToast('Preencha nome e quantidade válidos.', true);
+      return;
+    }
+
+    const payload = { name, type, qty, unit, color: selectedColor };
+    saveBtn.disabled = true;
+
+    try{
+      const res = await fetch(editingId ? `${API}/${editingId}` : API, {
+        method: editingId ? 'PUT' : 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || 'Erro ao salvar.');
+
+      showToast(editingId ? 'Tecido atualizado.' : 'Tecido adicionado ao estoque.');
+      closeModal();
+      await loadFabrics();
+    }catch(err){
+      showToast(err.message, true);
+    }finally{
+      saveBtn.disabled = false;
+    }
+  }
+
+  async function deleteFabric(id){
+    const f = fabrics.find(x=>x.id===id);
+    if(!f) return;
+    try{
+      const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || 'Erro ao remover.');
+      showToast(`"${f.name}" removido do estoque.`);
+      await loadFabrics();
+    }catch(err){
+      showToast(err.message, true);
+    }
+  }
+
+  let toastTimer;
+  function showToast(msg, isError){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.toggle('error', !!isError);
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>t.classList.remove('show'), 2600);
+  }
+
+  document.getElementById('overlay').addEventListener('click', e=>{
+    if(e.target.id === 'overlay') closeModal();
+  });
+  document.addEventListener('keydown', e=>{
+    if(e.key === 'Escape') closeModal();
+  });
+  document.getElementById('searchInput').addEventListener('input', ()=>{
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(loadFabrics, 300);
+  });
+
+  buildSwatchPicker();
+  loadFabrics();
+</script>
+
+</body>
+</html>
